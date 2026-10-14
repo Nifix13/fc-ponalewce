@@ -1,26 +1,63 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+  Czern i zloto wprost z herbu, ale odwrocone proporcje: zloto jest POLEM,
+  nie ozdoba. Strona to naprzemienne pasy - zlote bloki z czarnym pismem
+  i czarne pasy z danymi. Biel i neon to komplety: domowy i wyjazdowy,
+  i sluza wylacznie do oznaczania, gdzie gramy.
+*/
+@theme {
+  --color-coal: #0d0d0d;
+  --color-coal-deep: #000000;
+  --color-coal-line: #262626;
+  --color-gold: #ffd000;
+  --color-gold-deep: #e0b800;
+  --color-smoke: #8d8d8d;
+  --color-neon: #a6ff3d;
+
+  --font-display: var(--font-shoulders), "Arial Narrow", sans-serif;
+  --font-body: var(--font-archivo), system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--color-coal);
+  color: #fff;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+}
+
+/* Cyfry rownej szerokosci - wyniki i tabele nie moga tanczyc. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Wysokie, waskie liternictwo dla naglowkow i liczb. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 0.84;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+/* Pas pelnej szerokosci wychodzacy poza kontener tresci. */
+.band {
+  margin-inline: calc(50% - 50vw);
+  padding-inline: calc(50vw - 50% + 1rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-neon);
+  outline-offset: 2px;
 }

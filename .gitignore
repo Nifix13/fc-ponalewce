@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# dane lokalne
+dane.db
+public/uploads/
+
+# tymczasowe
+.tunnel-url
+herb/
