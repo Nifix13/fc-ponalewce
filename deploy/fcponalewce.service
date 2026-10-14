@@ -1,0 +1,31 @@
+# Usluga systemd - aplikacja wstaje sama po restarcie serwera.
+#
+# Instalacja na VPS:
+#   sudo cp deploy/fcponalewce.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now fcponalewce
+#
+# Podmien User i WorkingDirectory na swoje.
+# Sciezke do node sprawdz przez: which node
+
+[Unit]
+Description=FC Po Nalewce
+After=network.target
+
+[Service]
+Type=simple
+User=janek
+WorkingDirectory=/home/janek/fc-ponalewce
+Environment=NODE_ENV=production
+Environment=PORT=3000
+# Katalog, w ktorym leza dane. Musi byc zapisywalny dla User powyzej.
+Environment=DB_PATH=/home/janek/fc-ponalewce/dane.db
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start
+Restart=always
+RestartSec=5
+# Logi trafiaja do dziennika systemowego: journalctl -u fcponalewce -f
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

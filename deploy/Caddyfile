@@ -1,0 +1,24 @@
+# Caddy sam wyrabia i odnawia certyfikat Let's Encrypt - nie trzeba certbota.
+#
+# Instalacja na VPS (Debian/Ubuntu):
+#   sudo apt install -y caddy
+#   sudo cp deploy/Caddyfile /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+#
+# Podmien domene na swoja. Porty 80 i 443 musza byc otwarte w zaporze.
+
+fcponalewce.pl, www.fcponalewce.pl {
+	encode zstd gzip
+
+	# Wgrane zdjecia i herb serwuje Caddy bezposrednio z dysku - szybciej
+	# niz przez Node i odciaza aplikacje.
+	@statyczne path /uploads/* /herb/*
+	handle @statyczne {
+		root * /home/janek/fc-ponalewce/public
+		file_server
+	}
+
+	handle {
+		reverse_proxy localhost:3000
+	}
+}

@@ -1,0 +1,8 @@
+# Codzienne pobieranie danych z obu lig.
+#
+# Instalacja:  crontab -e   i wklej ponizsza linie (podmien sciezki)
+#
+# Po kazdym pobraniu system liczy i zapisuje strzelcow nowych meczow
+# z roznicy miedzy migawkami - dlatego wazne, zeby chodzilo regularnie.
+
+30 6 * * * cd /home/janek/fc-ponalewce && /usr/bin/node scripts/sync.ts >> /home/janek/fcpn-sync.log 2>&1
