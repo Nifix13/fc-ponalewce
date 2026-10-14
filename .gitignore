@@ -46,4 +46,5 @@ public/uploads/
 
 # tymczasowe
 .tunnel-url
-herb/
+# tylko folder zrodlowy w katalogu glownym - BEZ public/herb
+/herb/
