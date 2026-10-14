@@ -1,4 +1,72 @@
-# Wdrożenie na VPS
+# Wdrożenie
+
+Dwie drogi: **Northflank** (za darmo, w kontenerze — zalecane) albo **własny VPS**.
+
+---
+
+# A. Northflank — darmowo
+
+Plan Developer daje 1 vCPU, 1 GB RAM i **0,5 GB trwałego dysku**. To wszystko,
+czego ta aplikacja potrzebuje.
+
+## A1. Kod na GitHuba
+
+```
+git remote add origin git@github.com:TWOJ-LOGIN/fc-ponalewce.git
+git push -u origin master
+```
+
+## A2. Usługa w Northflanku
+
+1. Załóż konto, połącz z GitHubem.
+2. **Create new → Service → Build & Deploy from Git**, wskaż repozytorium.
+3. Build type: **Dockerfile**, ścieżka `/Dockerfile`.
+4. Port: **3000**, protokół HTTP, publiczny.
+5. Zasoby: najmniejszy plan z planu darmowego.
+
+## A3. Trwały dysk — bez tego stracisz dane
+
+W zakładce **Volumes** dodaj wolumen i podepnij go pod **`/dane`**.
+
+Tam lądują baza i wgrane zdjęcia. Bez wolumenu znikną przy każdym wdrożeniu —
+katalog kontenera jest ulotny.
+
+## A4. Zmienne środowiskowe
+
+W **Environment** ustaw:
+
+```
+ADMIN_PASSWORD=twoje-dlugie-haslo
+SESSION_SECRET=<64 znaki losowe>
+```
+
+Sekret wygenerujesz u siebie:
+
+```
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+## A5. Domena
+
+W Northflanku: **Domains → Add custom domain**, wpisz swoją nazwę. Northflank
+poda wartość rekordu **CNAME**. Wpisz ją w panelu rejestratora (Namecheap:
+Advanced DNS → Add New Record). Certyfikat HTTPS wyrobi się sam.
+
+## A6. Pierwsze dane
+
+Wejdź na `/panel`, zaloguj się i kliknij **Pobierz dane lig**. Kolejne
+pobrania robi już sama aplikacja — harmonogram siedzi w środku procesu
+i sprawdza co godzinę, czy dane nie są starsze niż 20 godzin.
+
+## Czego NIE przenosić z laptopa
+
+`dane.db` i `.env.local` zostają u ciebie. Na serwerze baza powstanie od zera,
+a hasło ustawiasz w zmiennych środowiskowych — dłuższe niż lokalne, bo adres
+będzie publiczny.
+
+---
+
+# B. Wdrożenie na VPS
 
 Zakłada Debiana albo Ubuntu. Wszędzie podmień `janek` i `fcponalewce.pl` na swoje.
 

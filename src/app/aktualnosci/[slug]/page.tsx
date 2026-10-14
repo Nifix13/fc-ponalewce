@@ -2,6 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPost } from "../../../lib/content.ts";
 
+/*
+  Strona zalezy od adresu i czyta baze, wiec nie da sie jej przygotowac
+  z wyprzedzeniem.
+*/
+export const instant = false;
+
 export default async function PostPage({
   params,
 }: {

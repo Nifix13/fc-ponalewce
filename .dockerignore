@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.claude
+herb
+dane.db
+.env.local
+.tunnel-url
+public/uploads
+*.log
