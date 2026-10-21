@@ -12,11 +12,13 @@ import {
   deleteInsta,
   deletePost,
   setMatchScorers,
+  bumpLiveScore,
 } from "../../lib/content.ts";
 import { recordRun, saveSnapshot } from "../../lib/db.ts";
 import { fetchOtwock } from "../../lib/sources/olsp.ts";
 import { fetchJozefow } from "../../lib/sources/jlsp.ts";
 import { recordScorersForNewMatches } from "../../lib/scorers.ts";
+import { currentLiveView } from "../../lib/live-source.ts";
 
 export type ActionResult = { ok: boolean; message: string };
 
@@ -173,6 +175,27 @@ export async function deleteInstaAction(formData: FormData): Promise<void> {
   deleteInsta(Number(formData.get("id")));
   revalidatePath("/");
   revalidatePath("/panel");
+}
+
+/**
+ * Plus i minus przy wyniku na żywo.
+ *
+ * Działa tylko wtedy, gdy mecz faktycznie trwa - identyfikator meczu bierzemy
+ * z bieżącego stanu, nie z formularza, więc nie da się podbić wyniku meczowi
+ * sprzed tygodnia ani cudzemu.
+ */
+export async function bumpScoreAction(
+  side: "our" | "their",
+  delta: number,
+): Promise<{ ourGoals: number; theirGoals: number } | null> {
+  await requireAdmin();
+
+  const view = currentLiveView();
+  if (!view) return null;
+
+  const next = bumpLiveScore(view.league, view.sourceId, side, delta);
+  revalidatePath("/panel");
+  return next;
 }
 
 export async function syncAction(): Promise<ActionResult> {

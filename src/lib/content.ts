@@ -56,8 +56,69 @@ function ensure(): void {
       text TEXT NOT NULL,
       PRIMARY KEY (league, source_id)
     );
+    /*
+      Wynik wbijany plusem i minusem w panelu w trakcie meczu.
+      Zyje OSOBNO od danych ligowych i nigdy ich nie nadpisuje - gdy liga
+      poda oficjalny wynik, to on obowiazuje w tabelach i grafikach.
+    */
+    CREATE TABLE IF NOT EXISTS live_scores (
+      league TEXT NOT NULL,
+      source_id TEXT NOT NULL,
+      our_goals INTEGER NOT NULL DEFAULT 0,
+      their_goals INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL,
+      PRIMARY KEY (league, source_id)
+    );
   `);
   ready = true;
+}
+
+export type LiveScore = { ourGoals: number; theirGoals: number };
+
+export function getLiveScore(league: string, sourceId: string): LiveScore {
+  ensure();
+  const row = db()
+    .prepare(
+      `SELECT our_goals, their_goals FROM live_scores
+        WHERE league = ? AND source_id = ?`,
+    )
+    .get(league, sourceId) as
+    | { our_goals: number; their_goals: number }
+    | undefined;
+  return {
+    ourGoals: row?.our_goals ?? 0,
+    theirGoals: row?.their_goals ?? 0,
+  };
+}
+
+/** Zmienia wynik o `delta`. Nigdy nie schodzi ponizej zera. */
+export function bumpLiveScore(
+  league: string,
+  sourceId: string,
+  side: "our" | "their",
+  delta: number,
+): LiveScore {
+  ensure();
+  const current = getLiveScore(league, sourceId);
+  const next: LiveScore = {
+    ourGoals: current.ourGoals + (side === "our" ? delta : 0),
+    theirGoals: current.theirGoals + (side === "their" ? delta : 0),
+  };
+  next.ourGoals = Math.max(0, next.ourGoals);
+  next.theirGoals = Math.max(0, next.theirGoals);
+
+  db()
+    .prepare(
+      `INSERT INTO live_scores (league, source_id, our_goals, their_goals, updated_at)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(league, source_id) DO UPDATE SET
+         our_goals = excluded.our_goals,
+         their_goals = excluded.their_goals,
+         updated_at = excluded.updated_at`,
+    )
+    .run(league, sourceId, next.ourGoals, next.theirGoals, new Date().toISOString());
+
+  return next;
 }
 
 export function getMatchScorers(league: string, sourceId: string): string {

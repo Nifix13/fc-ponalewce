@@ -4,6 +4,7 @@ import { listInsta, listPosts } from "../../lib/content.ts";
 import { recentRuns } from "../../lib/db.ts";
 import { deleteInstaAction, deletePostAction, logoutAction } from "./actions.ts";
 import { InstaForm, LoginForm, PostForm, SyncButton } from "./PanelForms.tsx";
+import LiveControls from "./LiveControls.tsx";
 
 /*
   Panel czyta ciasteczko sesji, wiec nie da sie go przygotowac z
@@ -58,6 +59,9 @@ export default async function Panel() {
       </header>
 
       <div className="grid gap-12">
+        {/* Caly blok - z naglowkiem - chowa sie, gdy zaden mecz nie trwa. */}
+        <LiveControls />
+
         <Section title="Nowy post">
           <PostForm />
         </Section>

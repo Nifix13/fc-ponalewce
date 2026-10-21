@@ -114,7 +114,7 @@ export function InstaForm() {
   const [result, action, pending] = useActionState(addInstaAction, null);
   return (
     <form action={action} className="flex flex-wrap items-end gap-3">
-      <div className="min-w-[18rem] flex-1">
+      <div className="min-w-0 flex-1 basis-72">
         <label className={label} htmlFor="url">
           Adres posta z Instagrama
         </label>
@@ -150,7 +150,7 @@ export function CoverForm({
   const [result, action, pending] = useActionState(uploadCoverAction, null);
   return (
     <form action={action} className="flex flex-wrap items-end gap-4">
-      <div className="min-w-[20rem] flex-1">
+      <div className="min-w-0 flex-1 basis-80">
         <label className={label} htmlFor="mecz">
           Mecz
         </label>
@@ -167,7 +167,7 @@ export function CoverForm({
           ))}
         </select>
       </div>
-      <div className="min-w-[16rem] flex-1">
+      <div className="min-w-0 flex-1 basis-64">
         <label className={label} htmlFor="photo">
           Zdjęcie w tle
         </label>

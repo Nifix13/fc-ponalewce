@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo, Big_Shoulders } from "next/font/google";
 import "./globals.css";
+import LiveWidget from "./LiveWidget.tsx";
 
 /*
   Big Shoulders Display - wysokie i waskie, zbudowane do duzych napisow;
@@ -32,7 +33,11 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pl" className={`${shoulders.variable} ${archivo.variable}`}>
-      <body className="bg-coal text-white antialiased">{children}</body>
+      <body className="bg-coal text-white antialiased">
+        {children}
+        {/* Widget pokazuje sie sam tylko wokol meczu - poza tym nic nie rysuje. */}
+        <LiveWidget />
+      </body>
     </html>
   );
 }
