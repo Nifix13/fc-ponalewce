@@ -28,6 +28,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
+# Dla czytelnosci logow. Kod liczy czas lig jawnie po warszawsku
+# i NIE polega na tym ustawieniu - patrz src/lib/czas.ts.
+ENV TZ=Europe/Warsaw
 # Baza i wgrane zdjecia leza na trwalym dysku podpietym pod /dane.
 ENV DB_PATH=/dane/dane.db
 

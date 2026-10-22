@@ -1,6 +1,7 @@
 /** Przygotowanie danych pod widok. Czyste funkcje, bez JSX. */
 
 import { latestSnapshot } from "./db.ts";
+import { formatLeagueDateTime, leagueTimeToInstant } from "./czas.ts";
 import {
   type Fixture,
   type LeagueKey,
@@ -126,24 +127,31 @@ export function atHome(fixture: Fixture): boolean {
   return isOurTeam(fixture.homeTeam);
 }
 
-const MONTHS = [
-  "stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca",
-  "lipca", "sierpnia", "września", "października", "listopada", "grudnia",
-];
+/*
+  Daty z terminarza sa w czasie warszawskim i bez strefy. Formatujemy je
+  jawnie w tej strefie, zeby na serwerze w UTC nie pokazac godziny
+  przesunietej o dwie godziny.
+
+  Otwock podaje pelna date ISO (z literą Z), Jozefow - naiwny czas lokalny.
+  Jedno i drugie konczy jako konkretna chwila, a potem jest formatowane
+  po warszawsku.
+*/
+function toInstant(iso: string): number {
+  // Z koncowka Z albo przesunieciem - to juz konkretna chwila.
+  if (/(Z|[+-]\d{2}:\d{2})$/.test(iso)) return Date.parse(iso);
+  return leagueTimeToInstant(iso);
+}
 
 export function formatDate(iso: string | null, fallback: string): string {
   if (!iso) return fallback;
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return fallback;
-  return `${date.getDate()} ${MONTHS[date.getMonth()]}`;
+  const instant = toInstant(iso);
+  if (Number.isNaN(instant)) return fallback;
+  return formatLeagueDateTime(instant, false);
 }
 
 export function formatDateTime(iso: string | null, fallback: string): string {
   if (!iso) return fallback;
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return fallback;
-  const time = iso.includes("T")
-    ? `, ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`
-    : "";
-  return `${date.getDate()} ${MONTHS[date.getMonth()]}${time}`;
+  const instant = toInstant(iso);
+  if (Number.isNaN(instant)) return fallback;
+  return formatLeagueDateTime(instant, iso.includes("T"));
 }

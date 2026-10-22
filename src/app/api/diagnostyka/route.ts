@@ -38,6 +38,12 @@ export async function GET(): Promise<Response> {
 
   const report: Record<string, unknown> = {
     czas: new Date().toISOString(),
+    strefa_serwera: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    teraz_po_polsku: new Intl.DateTimeFormat('pl-PL', {
+      timeZone: 'Europe/Warsaw',
+      dateStyle: 'short',
+      timeStyle: 'medium',
+    }).format(new Date()),
     srodowisko: {
       NODE_ENV: process.env.NODE_ENV ?? null,
       ADMIN_PASSWORD_ustawione: Boolean(process.env.ADMIN_PASSWORD),

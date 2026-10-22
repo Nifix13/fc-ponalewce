@@ -1,11 +1,18 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { phaseAt, pickLiveFixture } from "./live.ts";
+import { leagueTimeToInstant } from "./czas.ts";
 import type { Fixture } from "./sources/types.ts";
 
-/** Mecz o 19:40 czasu lokalnego - tak jak w terminarzu Józefowa. */
+/**
+ * Mecz o 19:40 czasu POLSKIEGO - tak jak w terminarzu Józefowa.
+ *
+ * Chwile liczymy przez leagueTimeToInstant, a nie przez `new Date(...)`.
+ * Inaczej same testy zalezalyby od strefy maszyny i przechodzilyby tylko
+ * w Polsce - dokladnie ten blad siedzial wczesniej w aplikacji.
+ */
 const KICKOFF = "2026-10-28T19:40:00";
-const START = new Date(KICKOFF).getTime();
+const START = leagueTimeToInstant(KICKOFF);
 const MIN = 60_000;
 
 function at(offsetMinutes: number): number {
@@ -13,16 +20,13 @@ function at(offsetMinutes: number): number {
 }
 
 test("dzien przed meczem widget sie nie pokazuje", () => {
-  const dzienWczesniej = new Date(KICKOFF);
-  dzienWczesniej.setHours(23, 59, 0, 0);
-  dzienWczesniej.setDate(dzienWczesniej.getDate() - 1);
-  assert.equal(phaseAt(dzienWczesniej.getTime(), KICKOFF), null);
+  const dzienWczesniej = leagueTimeToInstant("2026-10-27T23:59:00");
+  assert.equal(phaseAt(dzienWczesniej, KICKOFF), null);
 });
 
 test("od polnocy w dniu meczu leci odliczanie, nawet wiele godzin", () => {
-  const polnoc = new Date(KICKOFF);
-  polnoc.setHours(0, 0, 0, 0);
-  const state = phaseAt(polnoc.getTime(), KICKOFF);
+  const polnoc = leagueTimeToInstant("2026-10-28T00:00:00");
+  const state = phaseAt(polnoc, KICKOFF);
   assert.equal(state?.phase, "countdown");
   // Mecz o 19:40, wiec od polnocy zostaje 19 godzin i 40 minut.
   assert.equal(state?.countdownSeconds, (19 * 60 + 40) * 60);
@@ -70,10 +74,9 @@ test("po ostatnim gwizdku wynik zostaje", () => {
 });
 
 test("po polnocy widget znika", () => {
-  const polnoc = new Date(KICKOFF);
-  polnoc.setHours(24, 0, 0, 0);
-  assert.equal(phaseAt(polnoc.getTime(), KICKOFF), null);
-  assert.equal(phaseAt(polnoc.getTime() - 1000, KICKOFF)?.phase, "finished");
+  const polnoc = leagueTimeToInstant("2026-10-29T00:00:00");
+  assert.equal(phaseAt(polnoc, KICKOFF), null);
+  assert.equal(phaseAt(polnoc - 1000, KICKOFF)?.phase, "finished");
 });
 
 // --- wybor meczu ----------------------------------------------------------
@@ -116,22 +119,10 @@ test("mecz bez godziny jest pomijany", () => {
   );
 });
 
-/**
- * Terminarz podaje czas LOKALNY bez strefy, wiec data testowa musi byc
- * budowana tak samo. `toISOString()` zwraca UTC i przesuwalo mecz o dwie
- * godziny - pierwsza wersja tego testu wlasnie na tym polegla.
- */
-function localIso(ms: number): string {
-  const d = new Date(ms);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return (
-    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
-    `T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
-  );
-}
-
 test("gdy pasuja dwa mecze, wygrywa ten blizszy gwizdka", () => {
-  const terazKickoff = localIso(at(5));
+  // Godzina wprost z terminarza, nie budowana z zegara maszyny - inaczej
+  // test przechodzilby tylko w polskiej strefie.
+  const terazKickoff = "2026-10-28T19:45:00";
   const picked = pickLiveFixture(at(5), [
     { league: "jozefow", fixture: fixture({ sourceId: "dawny" }) },
     { league: "otwock", fixture: fixture({ sourceId: "swiezy", kickoff: terazKickoff }) },
@@ -140,12 +131,9 @@ test("gdy pasuja dwa mecze, wygrywa ten blizszy gwizdka", () => {
 });
 
 test("gdy nic nie pasuje, nie ma czego pokazac", () => {
-  const dwaDniWczesniej = new Date(KICKOFF);
-  dwaDniWczesniej.setDate(dwaDniWczesniej.getDate() - 2);
+  const dwaDniWczesniej = leagueTimeToInstant("2026-10-26T12:00:00");
   assert.equal(
-    pickLiveFixture(dwaDniWczesniej.getTime(), [
-      { league: "otwock", fixture: fixture() },
-    ]),
+    pickLiveFixture(dwaDniWczesniej, [{ league: "otwock", fixture: fixture() }]),
     null,
   );
 });
