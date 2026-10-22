@@ -50,16 +50,16 @@ export async function GET(): Promise<Response> {
   // --- katalog i plik bazy ---
   const baza = report.baza as Record<string, unknown>;
   try {
-    baza.katalog_istnieje = fs.existsSync(dbDir);
-    fs.accessSync(dbDir, fs.constants.W_OK);
+    baza.katalog_istnieje = fs.existsSync(/*turbopackIgnore: true*/ dbDir);
+    fs.accessSync(/*turbopackIgnore: true*/ dbDir, fs.constants.W_OK);
     baza.katalog_zapisywalny = true;
   } catch (error) {
     baza.katalog_zapisywalny = false;
     baza.katalog_blad = error instanceof Error ? error.message : String(error);
   }
   try {
-    baza.plik_istnieje = fs.existsSync(dbPath);
-    baza.rozmiar_bajtow = baza.plik_istnieje ? fs.statSync(dbPath).size : 0;
+    baza.plik_istnieje = fs.existsSync(/*turbopackIgnore: true*/ dbPath);
+    baza.rozmiar_bajtow = baza.plik_istnieje ? fs.statSync(/*turbopackIgnore: true*/ dbPath).size : 0;
   } catch (error) {
     baza.plik_blad = error instanceof Error ? error.message : String(error);
   }

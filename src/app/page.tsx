@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import Link from "next/link";
+import { connection } from "next/server";
 import { listInsta, listPosts } from "../lib/content.ts";
 import {
   atHome,
@@ -18,6 +19,15 @@ import {
   type LeagueKey,
   type TableRow,
 } from "../lib/sources/types.ts";
+
+/*
+  Dwie rzeczy sa tu potrzebne RAZEM:
+   - `connection()` nizej wymusza render w czasie zadania,
+   - `instant = false` pozwala stronie na tym zaczekac.
+  Samo `connection()` wywala budowanie, samo `instant = false` nic nie daje,
+  bo czytanie bazy to zwykly kod, ktorego Next nie uznaje za dane zmienne.
+*/
+export const instant = false;
 
 /** Herb wrzucony do public/herb/ - dowolna nazwa, bierzemy pierwszy obrazek. */
 function crestSrc(): string | null {
@@ -210,7 +220,16 @@ function StandingsTable({
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  /*
+    Wstrzymuje przygotowywanie strony do czasu prawdziwego zadania.
+    Bez tego Next zbudowal strone statycznie - czytanie bazy to zwykly
+    synchroniczny kod, ktorego nie rozpoznaje jako danych zmiennych - i w
+    obrazie kontenera, gdzie bazy jeszcze nie ma, wypalal na stale napis
+    "Brak danych". Pilnuje tego test strony-dynamiczne.test.ts.
+  */
+  await connection();
+
   const otwock = leagueSummary("otwock");
   const jozefow = leagueSummary("jozefow");
 
