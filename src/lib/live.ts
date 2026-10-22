@@ -16,8 +16,6 @@ const MINUTE = 60_000;
 
 export const HALF_MINUTES = 30;
 export const BREAK_MINUTES = 5;
-/** Ile przed pierwszym gwizdkiem pokazać odliczanie. */
-export const COUNTDOWN_MINUTES = 60;
 
 const FIRST_END = HALF_MINUTES * MINUTE;
 const SECOND_START = (HALF_MINUTES + BREAK_MINUTES) * MINUTE;
@@ -47,6 +45,13 @@ function endOfMatchDay(kickoff: Date): number {
   return end.getTime();
 }
 
+/** Początek dnia meczu - od tej chwili leci odliczanie. */
+function startOfMatchDay(kickoff: Date): number {
+  const start = new Date(kickoff);
+  start.setHours(0, 0, 0, 0);
+  return start.getTime();
+}
+
 /**
  * Faza meczu dla podanej chwili. `null` znaczy, że widget ma się nie pokazywać.
  */
@@ -60,7 +65,8 @@ export function phaseAt(
 
   const since = now - start;
 
-  if (since < -COUNTDOWN_MINUTES * MINUTE) return null;
+  // Odliczanie widac przez caly dzien meczu, od polnocy.
+  if (now < startOfMatchDay(kickoff)) return null;
 
   if (since < 0) {
     return {

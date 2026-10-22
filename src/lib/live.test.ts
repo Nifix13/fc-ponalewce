@@ -12,11 +12,23 @@ function at(offsetMinutes: number): number {
   return START + offsetMinutes * MIN;
 }
 
-test("ponad godzine przed meczem widget sie nie pokazuje", () => {
-  assert.equal(phaseAt(at(-61), KICKOFF), null);
+test("dzien przed meczem widget sie nie pokazuje", () => {
+  const dzienWczesniej = new Date(KICKOFF);
+  dzienWczesniej.setHours(23, 59, 0, 0);
+  dzienWczesniej.setDate(dzienWczesniej.getDate() - 1);
+  assert.equal(phaseAt(dzienWczesniej.getTime(), KICKOFF), null);
 });
 
-test("dokladnie godzine przed - zaczyna sie odliczanie", () => {
+test("od polnocy w dniu meczu leci odliczanie, nawet wiele godzin", () => {
+  const polnoc = new Date(KICKOFF);
+  polnoc.setHours(0, 0, 0, 0);
+  const state = phaseAt(polnoc.getTime(), KICKOFF);
+  assert.equal(state?.phase, "countdown");
+  // Mecz o 19:40, wiec od polnocy zostaje 19 godzin i 40 minut.
+  assert.equal(state?.countdownSeconds, (19 * 60 + 40) * 60);
+});
+
+test("godzine przed meczem odliczanie dalej dziala", () => {
   const state = phaseAt(at(-60), KICKOFF);
   assert.equal(state?.phase, "countdown");
   assert.equal(state?.countdownSeconds, 3600);
@@ -128,5 +140,12 @@ test("gdy pasuja dwa mecze, wygrywa ten blizszy gwizdka", () => {
 });
 
 test("gdy nic nie pasuje, nie ma czego pokazac", () => {
-  assert.equal(pickLiveFixture(at(-200), [{ league: "otwock", fixture: fixture() }]), null);
+  const dwaDniWczesniej = new Date(KICKOFF);
+  dwaDniWczesniej.setDate(dwaDniWczesniej.getDate() - 2);
+  assert.equal(
+    pickLiveFixture(dwaDniWczesniej.getTime(), [
+      { league: "otwock", fixture: fixture() },
+    ]),
+    null,
+  );
 });

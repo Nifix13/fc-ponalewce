@@ -12,14 +12,21 @@ function isLive(data: Payload): data is LiveView {
   return data.phase !== "none";
 }
 
-function mmss(totalSeconds: number): string {
-  const m = Math.floor(totalSeconds / 60);
+/**
+ * Odliczanie leci od polnocy w dniu meczu, wiec potrafi miec kilkanascie
+ * godzin. Powyzej godziny pokazujemy g:mm:ss, ponizej mm:ss - inaczej
+ * wyszloby cos w rodzaju "487:20".
+ */
+function odliczanie(totalSeconds: number): string {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
   const s = totalSeconds % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
 }
 
 const HEADER: Record<LiveView["phase"], string> = {
-  countdown: "Za chwilę",
+  countdown: "Dziś gramy",
   first: "Na żywo",
   break: "Przerwa",
   second: "Na żywo",
@@ -69,10 +76,16 @@ export default function LiveWidget() {
 
   const right =
     view.phase === "countdown"
-      ? mmss(countdown)
+      ? odliczanie(countdown)
       : playing
         ? `${view.minute}′`
         : "";
+
+  // Na ostatniej godzinie przed gwizdkiem napis robi sie bardziej naglacy.
+  const naglowek =
+    view.phase === "countdown" && countdown <= 3600
+      ? "Za chwilę"
+      : HEADER[view.phase];
 
   return (
     <aside
@@ -82,7 +95,7 @@ export default function LiveWidget() {
     >
       <div className="flex items-center justify-between bg-gold px-2.5 py-1 text-coal sm:px-3">
         <span className="text-[10px] font-semibold tracking-[0.18em] uppercase">
-          {HEADER[view.phase]}
+          {naglowek}
         </span>
         {right && (
           <span className="display tabular text-base sm:text-lg">{right}</span>
